@@ -59,12 +59,23 @@ public class TutorialController {
 		}
 	}
 
+	@GetMapping("/tutorials/precio/{id}")
+	public ResponseEntity<String> getPrecioTutorial(@PathVariable("id") long id) {
+		Optional<Tutorial> tutorialData = tutorialRepository.findById(id);
+
+		if (tutorialData.isPresent()) {
+			return new ResponseEntity<>("El precio es: " + tutorialData.get().getPrice(), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
+
 
 	@PostMapping("/tutorials")
 	public ResponseEntity<Tutorial> createTutorial(@RequestBody Tutorial tutorial) {
 		try {
 			Tutorial _tutorial = tutorialRepository
-					.save(new Tutorial(tutorial.getTitle(), tutorial.getDescription(),  false));
+					.save(new Tutorial(tutorial.getTitle(), tutorial.getDescription(),  false,tutorial.getPrice()));
 			return new ResponseEntity<>(_tutorial, HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.EXPECTATION_FAILED);
@@ -119,6 +130,33 @@ public class TutorialController {
 			return new ResponseEntity<>(tutorials, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
+		}
+	}
+
+	@DeleteMapping("/tutorials/delete/{title}")
+	public ResponseEntity<HttpStatus> eliminarTutorialPorTitulo(@PathVariable("title")String title) {
+			try{
+				tutorialRepository.deleteByTitle(title);
+				return new ResponseEntity<>(HttpStatus.OK);
+			}catch(Exception err){
+				return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
+			}
+
+	}
+
+	@PutMapping("/tutorials/update/{titulo}")
+	public ResponseEntity<Tutorial> updateTutorialPorTitulo(@PathVariable("titulo")String titulo,@RequestBody Tutorial tutorial) {
+		Tutorial t = tutorialRepository.findOneByTitle(titulo);
+		Optional<Tutorial> tutorialData = Optional.ofNullable(tutorialRepository.findOneByTitle(titulo));
+
+		if (tutorialData.isPresent()) {
+			Tutorial _tutorial = tutorialData.get();
+			_tutorial.setTitle(tutorial.getTitle());
+			_tutorial.setDescription(tutorial.getDescription());
+			_tutorial.setPublished(tutorial.isPublished());
+			return new ResponseEntity<>(tutorialRepository.save(_tutorial), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
 
